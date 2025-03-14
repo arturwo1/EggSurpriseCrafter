@@ -8,8 +8,8 @@
 // @grant        GM_setValue
 // @grant        GM_getValue
 // @grant        GM_addStyle
-// @updateURL    https://raw.githubusercontent.com/arturwo1/EggSurpriseCrafter/new/main/crafter.js
-// @downloadURL  https://raw.githubusercontent.com/arturwo1/EggSurpriseCrafter/new/main/crafter.js
+// @updateURL    https://raw.githubusercontent.com/arturwo1/EggSurpriseCrafter/main/crafter.js
+// @downloadURL  https://raw.githubusercontent.com/arturwo1/EggSurpriseCrafter/main/crafter.js
 // ==/UserScript==
 
 (function() {
