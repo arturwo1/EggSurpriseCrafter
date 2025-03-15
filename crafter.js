@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         ESC
 // @namespace    http://tampermonkey.net/
-// @version      1.0.1
+// @version      1.0.2
 // @description  удобный авто-крафт с кулдаунами
 // @author       arturwol
 // @match        https://egg-surprise.shop/*
@@ -27,10 +27,6 @@
     main_menu_position[1] = typeof main_menu_position[1] === 'number' && !isNaN(main_menu_position[1]) ? main_menu_position[1] : 10;
 
     let isRunning = false;
-
-    function saveCraftQueue() {
-        localStorage.setItem("recipes", recipes);
-    }
 
     const main_menu = document.createElement('button');
     main_menu.id = 'main_menu';
@@ -58,8 +54,8 @@
     menu.style.borderRadius = '1vh';
     menu.style.width = '20vw';
     menu.style.height = '35vh';
-    menu.style.zIndex = 99999;
-    document.body.appendChild(menu);
+    menu.style.zIndex = 99998;
+    main_menu.appendChild(menu);
 
     // Заголовок меню
     const menu_title = document.createElement('div');
@@ -102,7 +98,7 @@
     scrollbar.style.padding = '1vh';
     menu.appendChild(scrollbar);
 
-    // Проверка на наличие рецептов, если они есть, то создаем элементы
+    // Крафты
     if (recipes.length > 0) {
         let topPosition = 2;
 
@@ -126,15 +122,63 @@
             autocraft_item.style.flexDirection = 'column';
             autocraft_item.style.justifyContent = 'center';
             autocraft_item.style.gap = '1vh';
-
             autocraft_item.innerHTML = `
-               Item ID: ${item_id}<br>
-                       Item amount: ${amount}<br>
-               Item cooldown: ${cooldown}
+            Item ID: ${item_id}<br>
+            Item amount: ${amount}<br>
+            Item cooldown: ${cooldown}
             `;
             scrollbar.appendChild(autocraft_item)
         });
     }
+
+    // Добавить крафт
+    const autocraft_item = document.createElement('button');
+    autocraft_item.id = 'autocraft_item';
+    autocraft_item.style.width = '100%';
+    autocraft_item.style.height = '17%';
+    autocraft_item.style.backgroundColor = '#4caf50';
+    autocraft_item.style.padding = '1.5vh';
+    autocraft_item.style.border = '1px solid #000000';
+    autocraft_item.style.borderRadius = '1vh';
+    autocraft_item.style.marginBottom = '1vh';
+    autocraft_item.style.color = '#025b06';
+    autocraft_item.style.fontSize = '17px';
+    autocraft_item.style.webkitTextStroke = '0.5px white';
+    autocraft_item.style.fontWeight = '900';
+    autocraft_item.style.textAlign = 'center';
+    autocraft_item.style.display = 'flex';
+    autocraft_item.style.flexDirection = 'column';
+    autocraft_item.style.justifyContent = 'center';
+    autocraft_item.style.alignItems = 'stretch';
+    autocraft_item.style.gap = '1vh';
+    autocraft_item.innerHTML = `Add new craft`;
+    scrollbar.appendChild(autocraft_item)
+
+    // start-stop
+    const start_stop = document.createElement('button');
+    start_stop.id = 'start_stop';
+    start_stop.style.position = 'absolute';
+    start_stop.style.left = '5%';
+    start_stop.style.top = '104%';
+    start_stop.style.width = '90%';
+    start_stop.style.height = '14%';
+    start_stop.style.backgroundColor = '#4caf50';
+    start_stop.style.padding = '1.5vh';
+    start_stop.style.border = '1px solid #000000';
+    start_stop.style.borderRadius = '1vh';
+    start_stop.style.marginBottom = '1vh';
+    start_stop.style.color = '#025b06';
+    start_stop.style.fontSize = '17px';
+    start_stop.style.webkitTextStroke = '0.5px white';
+    start_stop.style.fontWeight = '900';
+    start_stop.style.textAlign = 'center';
+    start_stop.style.display = 'flex';
+    start_stop.style.flexDirection = 'column';
+    start_stop.style.justifyContent = 'center';
+    start_stop.style.alignItems = 'stretch';
+    start_stop.style.gap = '1vh';
+    start_stop.innerHTML = `Start`;
+    menu.appendChild(start_stop)
 
     // Стилизация кнопки
     const style = document.createElement('style');
@@ -174,7 +218,7 @@
     let offsetX, offsetY, isDragging = false;
 
     main_menu.addEventListener('mousedown', (e) => {
-        if (e.target !== img) {
+        if (e.target == main_menu) {
             isDragging = true;
             offsetX = e.clientX - main_menu.getBoundingClientRect().left;
             offsetY = e.clientY - main_menu.getBoundingClientRect().top;
@@ -186,9 +230,6 @@
         if (isDragging) {
             main_menu.style.left = `${e.clientX - offsetX}px`;
             main_menu.style.top = `${e.clientY - offsetY}px`;
-
-            menu.style.left = `${e.clientX - offsetX}px`;
-            menu.style.top = `${e.clientY - offsetY + main_menu.offsetHeight}px`;
         }
     });
 
@@ -202,11 +243,21 @@
     });
 
     // Обработчик клика на кнопку для отображения/скрытия меню
-    main_menu.addEventListener('click', () => {
-        if (main_menu.style.cursor!='grabbing'){
+    main_menu.addEventListener('click', (e) => {
+        if (main_menu.style.cursor!='grabbing' && e.target == main_menu){
             const isMenuVisible = menu.style.display === 'block';
             menu.style.display = isMenuVisible ? 'none' : 'block';
         }
+    });
+
+    autocraft_item.addEventListener('click', (e) => {
+        const userInput = prompt("Ввод текста: ",JSON.stringify(recipes));
+        if (userInput) {
+            alert(`Успешно сохранено!
+Если будут ошибки при крафте, посмотрите правильно ли вы ввели здесь значение и измените его!`);
+            localStorage.setItem("recipes", JSON.stringify(JSON.parse(userInput)));
+        }
+        recipes = JSON.parse(userInput)
     });
 
 })();
