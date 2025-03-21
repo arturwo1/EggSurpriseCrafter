@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         ESC
 // @namespace    http://tampermonkey.net/
-// @version      1.0.2
+// @version      1.0.3
 // @description  удобный авто-крафт с кулдаунами
 // @author       arturwol
 // @match        https://egg-surprise.shop/*
@@ -20,7 +20,7 @@
     const BASE_URL = "https://egg-surprise.shop/api";
     const CRAFT_URL = `${BASE_URL}/craft/start`;
     const token = localStorage.getItem('access_token');
-    const recipes = JSON.parse(localStorage.getItem('recipes')) || []; // формат: [{"item_id":0,"amount":0,"cooldown":1000}]
+    let recipes = JSON.parse(localStorage.getItem('recipes')) || []; // формат: [{"item_id":0,"amount":0,"cooldown":1000}]
 
     const main_menu_position = JSON.parse(localStorage.getItem('position')) || [250,10];
     main_menu_position[0] = typeof main_menu_position[0] === 'number' && !isNaN(main_menu_position[0]) ? main_menu_position[0] : 250;
@@ -98,61 +98,68 @@
     scrollbar.style.padding = '1vh';
     menu.appendChild(scrollbar);
 
+    // Добавить крафт
+    const addcraft_item = document.createElement('button');
+    addcraft_item.id = 'autocraft_item';
+    addcraft_item.style.width = '100%';
+    addcraft_item.style.height = '17%';
+    addcraft_item.style.backgroundColor = '#4caf50';
+    addcraft_item.style.padding = '1.5vh';
+    addcraft_item.style.border = '1px solid #000000';
+    addcraft_item.style.borderRadius = '1vh';
+    addcraft_item.style.marginBottom = '1vh';
+    addcraft_item.style.color = '#025b06';
+    addcraft_item.style.fontSize = '17px';
+    addcraft_item.style.webkitTextStroke = '0.5px white';
+    addcraft_item.style.fontWeight = '900';
+    addcraft_item.style.textAlign = 'center';
+    addcraft_item.style.display = 'flex';
+    addcraft_item.style.flexDirection = 'column';
+    addcraft_item.style.justifyContent = 'center';
+    addcraft_item.style.alignItems = 'stretch';
+    addcraft_item.style.gap = '1vh';
+    addcraft_item.innerHTML = `Add new craft`;
+    scrollbar.appendChild(addcraft_item)
+
     // Крафты
-    if (recipes.length > 0) {
-        let topPosition = 2;
+    function updateCraftList() {
+        Array.from(scrollbar.children).forEach(child => {
+            if (child !== addcraft_item) {
+                scrollbar.removeChild(child);
+            }
+        });
+        if (recipes.length > 0) {
+            let topPosition = 2;
 
-        recipes.forEach(item => {
-            const { item_id, amount, cooldown } = item;
+            recipes.forEach(item => {
+                const { item_id, amount, cooldown } = item;
 
-            const autocraft_item = document.createElement('div');
-            autocraft_item.id = item_id+amount+cooldown;
-            autocraft_item.style.width = '100%';
-            autocraft_item.style.height = '50%';
-            autocraft_item.style.backgroundColor = 'rgb(0 79 131)';
-            autocraft_item.style.padding = '1vh';
-            autocraft_item.style.border = '1px solid #000000';
-            autocraft_item.style.borderRadius = '1vh';
-            autocraft_item.style.marginBottom = '1vh';
-            autocraft_item.style.color = 'white';
-            autocraft_item.style.fontSize = '14px';
-            autocraft_item.style.fontWeight = 'bold';
-            autocraft_item.style.textAlign = 'left';
-            autocraft_item.style.display = 'flex';
-            autocraft_item.style.flexDirection = 'column';
-            autocraft_item.style.justifyContent = 'center';
-            autocraft_item.style.gap = '1vh';
-            autocraft_item.innerHTML = `
+                const autocraft_item = document.createElement('div');
+                autocraft_item.id = item_id+amount+cooldown;
+                autocraft_item.style.width = '100%';
+                autocraft_item.style.height = '50%';
+                autocraft_item.style.backgroundColor = 'rgb(0 79 131)';
+                autocraft_item.style.padding = '1vh';
+                autocraft_item.style.border = '1px solid #000000';
+                autocraft_item.style.borderRadius = '1vh';
+                autocraft_item.style.marginBottom = '1vh';
+                autocraft_item.style.color = 'white';
+                autocraft_item.style.fontSize = '14px';
+                autocraft_item.style.fontWeight = 'bold';
+                autocraft_item.style.textAlign = 'left';
+                autocraft_item.style.display = 'flex';
+                autocraft_item.style.flexDirection = 'column';
+                autocraft_item.style.justifyContent = 'center';
+                autocraft_item.style.gap = '1vh';
+                autocraft_item.innerHTML = `
             Item ID: ${item_id}<br>
             Item amount: ${amount}<br>
             Item cooldown: ${cooldown}
             `;
-            scrollbar.appendChild(autocraft_item)
-        });
+                scrollbar.appendChild(autocraft_item)
+            });
+        }
     }
-
-    // Добавить крафт
-    const autocraft_item = document.createElement('button');
-    autocraft_item.id = 'autocraft_item';
-    autocraft_item.style.width = '100%';
-    autocraft_item.style.height = '17%';
-    autocraft_item.style.backgroundColor = '#4caf50';
-    autocraft_item.style.padding = '1.5vh';
-    autocraft_item.style.border = '1px solid #000000';
-    autocraft_item.style.borderRadius = '1vh';
-    autocraft_item.style.marginBottom = '1vh';
-    autocraft_item.style.color = '#025b06';
-    autocraft_item.style.fontSize = '17px';
-    autocraft_item.style.webkitTextStroke = '0.5px white';
-    autocraft_item.style.fontWeight = '900';
-    autocraft_item.style.textAlign = 'center';
-    autocraft_item.style.display = 'flex';
-    autocraft_item.style.flexDirection = 'column';
-    autocraft_item.style.justifyContent = 'center';
-    autocraft_item.style.alignItems = 'stretch';
-    autocraft_item.style.gap = '1vh';
-    autocraft_item.innerHTML = `Add new craft`;
-    scrollbar.appendChild(autocraft_item)
 
     // start-stop
     const start_stop = document.createElement('button');
@@ -250,14 +257,20 @@
         }
     });
 
-    autocraft_item.addEventListener('click', (e) => {
+    // Обработчик обновления крафта
+    addcraft_item.addEventListener('click', (e) => {
         const userInput = prompt("Ввод текста: ",JSON.stringify(recipes));
         if (userInput) {
-            alert(`Успешно сохранено!
+            try {
+                localStorage.setItem("recipes", JSON.stringify(JSON.parse(userInput)));
+                recipes = JSON.parse(userInput)
+                alert(`Успешно сохранено!
 Если будут ошибки при крафте, посмотрите правильно ли вы ввели здесь значение и измените его!`);
-            localStorage.setItem("recipes", JSON.stringify(JSON.parse(userInput)));
+                updateCraftList();
+            } catch (error) {
+                alert("Ошибка в формате JSON: " + error.message);
+            }
         }
-        recipes = JSON.parse(userInput)
     });
-
+    updateCraftList();
 })();
